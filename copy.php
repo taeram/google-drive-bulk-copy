@@ -30,6 +30,7 @@ if (!$isNewDatabase) {
 $drive = new \Taeram\Google\Drive($config['application_name'], __DIR__ . '/' . $config['client_secret_path'], TMP_PATH);
 $drive->getClient();
 
+// Start the copy!
 recursiveCopy($sourceFolderId, $destinationFolderId);
 
 /**
@@ -48,10 +49,8 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
     }
     $parentPath .= '/' . $sourceFolder->getName();
 
-    // Create a destination folder
-    $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
-
     // Iterate through all files in this folder
+    $destinationSubFolder = null;
     $sourceFiles = $drive->findFilesInFolderById($sourceFolder->id);
     foreach ($sourceFiles as $sourceFile) {
         // Skip files we've already copied
@@ -63,7 +62,12 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
         $isFolder = ($sourceFile->getMimeType() == 'application/vnd.google-apps.folder');
         if ($isFolder) {
             // Iterate through all folders in this folder
-            recursiveCopy($sourceFile->id, $destinationSubFolder->id, $parentPath);
+            $destinationChildFolder = recursiveCopy($sourceFile->id, $destinationFolderId, $parentPath);
+            if ($destinationChildFolder) {
+                // Create the parent, and move the child into the parent
+                $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
+                $drive->moveFolder($destinationChildFolder->id, $destinationSubFolder->id);
+            }
         } else {
             // Ignore certain files by extension
             foreach ($config['ignored_file_extension_regexes'] as $regex) {
@@ -73,20 +77,9 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
                 }
             }
 
-            // Skip the file if it already exists in the destination
-            $destinationFile = $drive->getFileByName($sourceFile->getName(), $destinationSubFolder->id);
-            if ($destinationFile && !$destinationFile->getTrashed()) {
-                if ($destinationFile->getSize() >= $sourceFile->getSize()) {
-                    echo "Duplicate: $parentPath/" . $destinationFile->getName() . "\n";
-
-                    // Store the file in the list
-                    storeFileId($sourceFile->id);
-
-                    continue;
-                }
-
-                echo "Trashing: $parentPath/" . $destinationFile->getName() . "\n";
-                $destinationFile->setTrashed(true);
+            // Create a destination folder
+            if (!$destinationSubFolder) {
+                $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
             }
 
             // Make a copy of the file, and put it in the destination folder
@@ -97,6 +90,8 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
             storeFileId($sourceFile->id);
         }
     }
+
+    return $destinationSubFolder;
 }
 
 /**
