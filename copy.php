@@ -52,6 +52,10 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
     // Iterate through all files in this folder
     $destinationSubFolder = null;
     $sourceFiles = $drive->findFilesInFolderById($sourceFolder->id);
+    if (!$sourceFiles) {
+        return null;
+    }
+
     foreach ($sourceFiles as $sourceFile) {
         // Skip files we've already copied
         if (fileIdExists($sourceFile->id)) {
