@@ -24,6 +24,13 @@ $drive->getClient();
 
 recursiveCopy($sourceFolderId, $destinationFolderId);
 
+/**
+ * Recursively copy one Google Drive folder to another
+ *
+ * @param string $sourceFolderId The source folder id
+ * @param string $destinationFolderId The destination folder id
+ * @param string $parentPath The parent path. Optional. Used only during recursion.
+ */
 function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null) {
     global $drive, $config;
 
