@@ -64,11 +64,17 @@ class Drive extends \Taeram\Google {
      * Create a folder
      *
      * @param string $folderName The folder name
-     * @param string $parentFolderId The parent folder id
+     * @param string $parentFolderId The parent folder id. Optional.
      *
      * @return \Google_Service_Drive_DriveFile
      */
-    public function createFolder($folderName, $parentFolderId) {
+    public function createFolder($folderName, $parentFolderId = null) {
+        // Return if the folder already exists
+        $folder = $this->getFileByName($folderName, $parentFolderId);
+        if ($folder) {
+            return $folder;
+        }
+
         // Create the folder
         $fileMetadata = new \Google_Service_Drive_DriveFile(array(
             'name' => $folderName,
@@ -76,19 +82,45 @@ class Drive extends \Taeram\Google {
         ));
         $folder = $this->service->files->create($fileMetadata, array('fields' => 'id'));
 
+        if ($parentFolderId) {
+            // Retrieve the existing parents to remove
+            $folderParents = $this->service->files->get($folder->id, array('fields' => 'parents'));
+            $previousParents = join(',', $folderParents->parents);
+
+            // Move the file to the new folder
+            $emptyFileMetadata = new \Google_Service_Drive_DriveFile();
+            $this->service->files->update($folder->id, $emptyFileMetadata, array(
+                'addParents' => $parentFolderId,
+                'removeParents' => $previousParents,
+                'fields' => 'id, parents'
+            ));
+        }
+
+        return $this->getFileById($folder->id);
+    }
+
+    /**
+     * Move a folder
+     *
+     * @param string $childFolderId The child folder id
+     * @param string $parentFolderId The parent folder id
+     *
+     * @return \Google_Service_Drive_DriveFile
+     */
+    public function moveFolder($childFolderId, $parentFolderId) {
         // Retrieve the existing parents to remove
-        $folderParents = $this->service->files->get($folder->id, array('fields' => 'parents'));
-        $previousParents = join(',', $folderParents->parents);
+        $childFolderParents = $this->service->files->get($childFolderId, array('fields' => 'parents'));
+        $previousParents = join(',', $childFolderParents->parents);
 
         // Move the file to the new folder
         $emptyFileMetadata = new \Google_Service_Drive_DriveFile();
-        $this->service->files->update($folder->id, $emptyFileMetadata, array(
+        $this->service->files->update($childFolderId, $emptyFileMetadata, array(
             'addParents' => $parentFolderId,
             'removeParents' => $previousParents,
             'fields' => 'id, parents'
         ));
 
-        return $this->getFileById($folder->id);
+        return $this->getFileById($childFolderId);
     }
 
     /**

@@ -48,12 +48,8 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
     }
     $parentPath .= '/' . $sourceFolder->getName();
 
-    // Create a destination folder if it doesn't exist
-    $destinationSubFolder = $drive->getFileByName($sourceFolder->getName(), $destinationFolderId);
-    if (!$destinationSubFolder) {
-        echo "Creating Destination Sub Folder: $parentPath/" . $sourceFolder->getName() . "\n";
-        $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
-    }
+    // Create a destination folder
+    $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
 
     // Iterate through all files in this folder
     $sourceFiles = $drive->findFilesInFolderById($sourceFolder->id);
