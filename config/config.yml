@@ -13,3 +13,4 @@ ignored_file_extension_regexes:
     - \.xml
     - sample\.avi
     - sample\.mkv
+db_path: copy.db

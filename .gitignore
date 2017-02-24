@@ -1,5 +1,6 @@
-/config/config.custom.yml
 /config/client_secret.json
+/config/config.custom.yml
+/copy.db
 /logs/
 /tmp/
 /vendor/

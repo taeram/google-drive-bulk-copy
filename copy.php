@@ -18,6 +18,14 @@ if (strlen($destinationFolderId) != 28) {
     throw new \Exception("Invalid destination folder URL");
 }
 
+// Instantiate the SQLite Database
+$dbPath = __DIR__ . '/' . $config['db_path'];
+$isNewDatabase = (file_exists($dbPath) == false);
+$db = new \PDO("sqlite://$dbPath");
+if (!$isNewDatabase) {
+    $db->exec('CREATE TABLE files (id char(28))');
+}
+
 // Instantiate the Google Drive client
 $drive = new \Taeram\Google\Drive($config['application_name'], __DIR__ . '/' . $config['client_secret_path'], TMP_PATH);
 $drive->getClient();
@@ -50,6 +58,12 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
     // Iterate through all files in this folder
     $sourceFiles = $drive->findFilesInFolderById($sourceFolder->id);
     foreach ($sourceFiles as $sourceFile) {
+        // Skip files we've already copied
+        if (fileIdExists($sourceFile->id)) {
+            echo "Exists: $parentPath/" . $sourceFile->getName() . "\n";
+            continue;
+        }
+
         $isFolder = ($sourceFile->getMimeType() == 'application/vnd.google-apps.folder');
         if ($isFolder) {
             // Iterate through all folders in this folder
@@ -68,6 +82,10 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
             if ($destinationFile && !$destinationFile->getTrashed()) {
                 if ($destinationFile->getSize() == $sourceFile->getSize()) {
                     echo "Duplicate: $parentPath/" . $destinationFile->getName() . "\n";
+
+                    // Store the file in the list
+                    storeFileId($sourceFile->id);
+
                     continue;
                 }
 
@@ -78,6 +96,39 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
             // Make a copy of the file, and put it in the destination folder
             echo "Copying: $parentPath/" . $sourceFile->getName() . "\n";
             $drive->copyFile($sourceFile, $destinationSubFolder->id);
+
+            // Store the file in the list
+            storeFileId($sourceFile->id);
         }
+    }
+}
+
+/**
+ * Does the file id exist in the database?
+ *
+ * @param string $fileId The file id
+ *
+ * @return boolean
+ */
+function fileIdExists($fileId) {
+    global $db;
+
+    foreach ($db->query("SELECT id FROM files WHERE id = '$fileId'") as $row) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Store the file id in the database
+ *
+ * @param string $fileId The file id
+ */
+function storeFileId($fileId) {
+    global $db;
+    $statement = $db->prepare("INSERT INTO files (id) VALUES (?)");
+    if (!$statement->execute(array($fileId))) {
+        throw new \Exception("Cannot store file id: $fileId");
     }
 }

@@ -3,7 +3,17 @@ Google Drive Bulk Copy
 
 Bulk copy an entire Google Drive folder to another location in your Google Drive.
 
+#### Features
+
+This script will recursively copy a source folder into a destination folder.
+
+* Duplicate files are skipped if they're the same size, or larger
+* Files are ignored if they match a certain pattern (see `config/config.yml` for the list)
+* Files are only copied to the destination *once*, meaning you can delete them from the destination and then re-run this script without re-copying the file.
+
 #### Setup
+
+Google Developer Console
 
 1. Browse to the [Google Developers Console](https://console.developers.google.com)
 1. Create a new project called "Google Drive Bulk Copy".
@@ -14,6 +24,10 @@ Bulk copy an entire Google Drive folder to another location in your Google Drive
 1. Close the dialog that pops up with the Client ID and secret. We'll download those in the next step.
 1. Find your Client in the list of Client ID's, and click the Download button next to it.
 1. Copy the `client_secret_1234-abcd.json` file that you download to `config/client_secret.json`.
+
+PHP
+
+1. You'll need at least PHP 5.4 with the php-sqlite package installed
 1. Lastly, you'll need to install the Composer dependencies: `composer install`
 
 #### Operation
