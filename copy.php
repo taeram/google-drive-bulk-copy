@@ -80,7 +80,7 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
             // Skip the file if it already exists in the destination
             $destinationFile = $drive->getFileByName($sourceFile->getName(), $destinationSubFolder->id);
             if ($destinationFile && !$destinationFile->getTrashed()) {
-                if ($destinationFile->getSize() == $sourceFile->getSize()) {
+                if ($destinationFile->getSize() >= $sourceFile->getSize()) {
                     echo "Duplicate: $parentPath/" . $destinationFile->getName() . "\n";
 
                     // Store the file in the list
