@@ -24,18 +24,19 @@ $drive->getClient();
 
 recursiveCopy($sourceFolderId, $destinationFolderId);
 
-function recursiveCopy($sourceFolderId, $destinationFolderId) {
+function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null) {
     global $drive, $config;
 
     $sourceFolder = $drive->getFileById($sourceFolderId);
     if (!$sourceFolder) {
         throw new \Exception("Cannot find source folder: $sourceFolderId");
     }
+    $parentPath .= '/' . $sourceFolder->getName();
 
     // Create a destination folder if it doesn't exist
     $destinationSubFolder = $drive->getFileByName($sourceFolder->getName(), $destinationFolderId);
     if (!$destinationSubFolder) {
-        echo "Creating Destination Sub Folder: " . $sourceFolder->getName() . "\n";
+        echo "Creating Destination Sub Folder: $parentPath/" . $sourceFolder->getName() . "\n";
         $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
     }
 
@@ -43,11 +44,14 @@ function recursiveCopy($sourceFolderId, $destinationFolderId) {
     $sourceFiles = $drive->findFilesInFolderById($sourceFolder->id);
     foreach ($sourceFiles as $sourceFile) {
         $isFolder = ($sourceFile->getMimeType() == 'application/vnd.google-apps.folder');
-        if (!$isFolder) {
+        if ($isFolder) {
+            // Iterate through all folders in this folder
+            recursiveCopy($sourceFile->id, $destinationSubFolder->id, $parentPath);
+        } else {
             // Ignore certain files by extension
             foreach ($config['ignored_file_extension_regexes'] as $regex) {
-                if (preg_match("/\.$regex$/i", $sourceFile->getName())) {
-                    echo "Ignoring: " . $sourceFile->getName() . "\n";
+                if (preg_match("/$regex$/i", $sourceFile->getName())) {
+                    echo "Ignoring: $parentPath/" . $sourceFile->getName() . "\n";
                     continue 2;
                 }
             }
@@ -56,16 +60,16 @@ function recursiveCopy($sourceFolderId, $destinationFolderId) {
             $destinationFile = $drive->getFileByName($sourceFile->getName(), $destinationSubFolder->id);
             if ($destinationFile && !$destinationFile->getTrashed()) {
                 if ($destinationFile->getSize() == $sourceFile->getSize()) {
-                    echo "Skipping duplicate: " . $destinationFile->getName() . "\n";
+                    echo "Duplicate: $parentPath/" . $destinationFile->getName() . "\n";
                     continue;
                 }
 
-                echo "Trashing partial file: " . $destinationFile->getName() . "\n";
+                echo "Trashing: $parentPath/" . $destinationFile->getName() . "\n";
                 $destinationFile->setTrashed(true);
             }
 
             // Make a copy of the file, and put it in the destination folder
-            echo "Copying: " . $sourceFile->getName() . "\n";
+            echo "Copying: $parentPath/" . $sourceFile->getName() . "\n";
             $drive->copyFile($sourceFile, $destinationSubFolder->id);
         }
     }
