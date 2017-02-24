@@ -41,6 +41,7 @@ class Drive extends \Taeram\Google {
      * @return \Google_Service_Drive_DriveFile or null if none found
      */
     public function getFileByName($fileName, $folderId = null) {
+        $fileName = addslashes($fileName);
         $q = "name = '$fileName'";
         if ($folderId) {
             $q .= " and '$folderId' in parents";
