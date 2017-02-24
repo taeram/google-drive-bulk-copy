@@ -14,7 +14,7 @@ class Drive extends \Taeram\Google {
      *
      * @return \Google_Client
      */
-    public function getClient() {
+    public function getClient($scopes = null) {
         parent::getClient(array(
             \Google_Service_Drive::DRIVE
         ));
