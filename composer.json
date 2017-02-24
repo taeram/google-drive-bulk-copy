@@ -1,0 +1,12 @@
+{
+    "autoload": {
+        "psr-4": {
+            "Taeram\\": "library/Taeram"
+        }
+    },
+    "require": {
+        "monolog/monolog": "^1.22",
+        "symfony/yaml": "^3.2",
+        "google/apiclient": "^2.1"
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "google-drive-bulk-copy",
+  "description": "Google Drive Bulk Copy",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+      "grunt": "~0.4",
+      "grunt-exec": "*"
+  }
+}

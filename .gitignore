@@ -1,0 +1,6 @@
+/config/*.json
+/logs/
+/node_modules
+/npm-debug.log
+/tmp/
+/vendor/
