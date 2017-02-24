@@ -1,6 +1,7 @@
 application_name: Google Drive Bulk Copy
 client_secret_path: config/client_secret.json
 ignored_file_extension_regexes:
+    - \.db
     - \.jpg
     - \.metathumb
     - \.nfo
