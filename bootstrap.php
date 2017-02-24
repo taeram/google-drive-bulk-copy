@@ -3,12 +3,11 @@
 date_default_timezone_set('America/Edmonton');
 
 // Define some paths
-define('ROOT_PATH', realpath(__DIR__ . '/../'));
-define('TMP_PATH', ROOT_PATH . '/tmp');
-define('LOG_PATH', ROOT_PATH . '/logs');
-define('CONFIG_PATH', ROOT_PATH . '/config');
-define('VENDOR_PATH', ROOT_PATH . '/vendor');
-define('LIBRARY_PATH', ROOT_PATH . '/library');
+define('CONFIG_PATH', __DIR__ . '/config');
+define('LIBRARY_PATH', __DIR__ . '/library');
+define('LOG_PATH', __DIR__ . '/logs');
+define('TMP_PATH', __DIR__ . '/tmp');
+define('VENDOR_PATH', __DIR__ . '/vendor');
 
 // Setup autoloading
 if (!file_exists(VENDOR_PATH)) {
@@ -17,12 +16,11 @@ if (!file_exists(VENDOR_PATH)) {
 require_once VENDOR_PATH . '/autoload.php';
 
 // Load the config
-$configFiles = array(
-    APP_PATH . '/config/config.yml',
-    APP_PATH . '/config/config.custom.yml'
-);
-
 $config = array();
+$configFiles = array(
+    CONFIG_PATH . '/config.yml',
+    CONFIG_PATH . '/config.custom.yml'
+);
 $yaml = new \Symfony\Component\Yaml\Parser();
 foreach ($configFiles as $file) {
     if (file_exists($file)) {

@@ -1,5 +1,5 @@
-/config/*.json
+/config/config.custom.yml
+/config/client_secret.json
 /logs/
-/node_modules
-/npm-debug.log
+/tmp/
 /vendor/
