@@ -7,8 +7,8 @@ Bulk copy an entire Google Drive folder to another location in your Google Drive
 
 This script will recursively copy a source folder into a destination folder.
 
-* Duplicate files are skipped if they're the same size, or larger
-* Files are ignored if they match a certain pattern (see `config/config.yml` for the list)
+* Duplicate files are skipped if the destination file is the same size, or larger than the source file
+* Files are skipped if they match a certain pattern (see `config/config.yml` for the ignore list)
 * Files are only copied to the destination *once*, meaning you can delete them from the destination and then re-run this script without re-copying the file.
 
 #### Setup

@@ -1,6 +1,7 @@
 /config/client_secret.json
 /config/config.custom.yml
-/copy.db
+/*.db
+/*.db-journal
 /logs/
 /tmp/
 /vendor/

@@ -4,6 +4,7 @@ ignored_file_extension_regexes:
     - \.jpg
     - \.metathumb
     - \.nfo
+    - \.nzb
     - \.plexignore
     - \.png
     - \.r[0-9][0-9]
