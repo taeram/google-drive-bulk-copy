@@ -10,6 +10,29 @@ class Drive extends \Taeram\Google {
     protected $service;
 
     /**
+     * The max number of allowed requests per second
+     *
+     * From Google, the Drive API has a limit of 10,000	queries per 100 seconds
+     *
+     * @var integer
+     */
+    protected $maxRequestsPerSecond = 10000 / 100;
+
+    /**
+     * When did we start making requests?
+     *
+     * @var integer
+     */
+    protected $requestsStartTimestamp;
+
+    /**
+     * How many requests have we made so far?
+     *
+     * @var integer
+     */
+    protected $numRequests = 0;
+
+    /**
      * Get the client
      *
      * @return \Google_Client
@@ -22,6 +45,27 @@ class Drive extends \Taeram\Google {
     }
 
     /**
+     * Handle rate limiting
+     */
+    protected function rateLimit() {
+        $this->numRequests++;
+
+        if (!$this->requestsStartTimestamp) {
+            $this->requestsStartTimestamp = time();
+        }
+
+        $elapsedTime = $this->requestsStartTimestamp;
+        if ($elapsedTime > 0) {
+            $requestsPerSecond = $this->numRequests / $elapsedTime;
+            echo "$requestsPerSecond RPS\n";
+            if ($requestsPerSecond >= ($this->maxRequestsPerSecond - 1)) {
+                echo "Rate limiting...\n";
+                sleep(1);
+            }
+        }
+    }
+
+    /**
      * Get the specified file
      *
      * @param string $fileId The file id
@@ -29,6 +73,7 @@ class Drive extends \Taeram\Google {
      * @return \Google_Service_Drive_DriveFile or null if none found
      */
     public function getFileById($fileId) {
+        $this->rateLimit();
         return $this->service->files->get($fileId);
     }
 
@@ -47,6 +92,7 @@ class Drive extends \Taeram\Google {
             $q .= " and '$folderId' in parents";
         }
 
+        $this->rateLimit();
         $fileList = $this->service->files->listFiles(array(
             'orderBy' => 'name,folder,createdTime',
             'q' => $q
@@ -76,6 +122,7 @@ class Drive extends \Taeram\Google {
         }
 
         // Create the folder
+        $this->rateLimit();
         $fileMetadata = new \Google_Service_Drive_DriveFile(array(
             'name' => $folderName,
             'mimeType' => 'application/vnd.google-apps.folder'
@@ -84,10 +131,12 @@ class Drive extends \Taeram\Google {
 
         if ($parentFolderId) {
             // Retrieve the existing parents to remove
+            $this->rateLimit();
             $folderParents = $this->service->files->get($folder->id, array('fields' => 'parents'));
             $previousParents = join(',', $folderParents->parents);
 
             // Move the file to the new folder
+            $this->rateLimit();
             $emptyFileMetadata = new \Google_Service_Drive_DriveFile();
             $this->service->files->update($folder->id, $emptyFileMetadata, array(
                 'addParents' => $parentFolderId,
@@ -109,10 +158,12 @@ class Drive extends \Taeram\Google {
      */
     public function moveFolder($childFolderId, $parentFolderId) {
         // Retrieve the existing parents to remove
+        $this->rateLimit();
         $childFolderParents = $this->service->files->get($childFolderId, array('fields' => 'parents'));
         $previousParents = join(',', $childFolderParents->parents);
 
         // Move the file to the new folder
+        $this->rateLimit();
         $emptyFileMetadata = new \Google_Service_Drive_DriveFile();
         $this->service->files->update($childFolderId, $emptyFileMetadata, array(
             'addParents' => $parentFolderId,
@@ -139,7 +190,9 @@ class Drive extends \Taeram\Google {
         $fileToCopy->setParents(array($destinationFolderId));
 
         // Make a copy of the file
+        $this->rateLimit();
         $fileCopy = $this->service->files->copy($file->id, $fileToCopy);
+
         return $this->getFileById($fileCopy->id);
     }
 
@@ -155,6 +208,7 @@ class Drive extends \Taeram\Google {
 
         $pageToken = null;
         do {
+            $this->rateLimit();
             $fileList = $this->service->files->listFiles(array(
                 'orderBy' => 'name,folder,createdTime',
                 'pageToken' => $pageToken,
