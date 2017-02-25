@@ -54,13 +54,12 @@ class Drive extends \Taeram\Google {
             $this->requestsStartTimestamp = time();
         }
 
-        $elapsedTime = $this->requestsStartTimestamp;
+        $elapsedTime = time() - $this->requestsStartTimestamp;
         if ($elapsedTime > 0) {
             $requestsPerSecond = $this->numRequests / $elapsedTime;
-            echo "$requestsPerSecond RPS\n";
             if ($requestsPerSecond >= ($this->maxRequestsPerSecond - 1)) {
                 echo "Rate limiting...\n";
-                sleep(1);
+                sleep(2);
             }
         }
     }
