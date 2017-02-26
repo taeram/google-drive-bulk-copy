@@ -23,7 +23,7 @@ class Drive extends \Taeram\Google {
      *
      * @var integer
      */
-    protected $requestsStartTimestamp;
+    protected $requestTimestamps = array();
 
     /**
      * How many requests have we made so far?
@@ -50,17 +50,17 @@ class Drive extends \Taeram\Google {
     protected function rateLimit() {
         $this->numRequests++;
 
-        if (!$this->requestsStartTimestamp) {
-            $this->requestsStartTimestamp = time();
-        }
-
-        $elapsedTime = time() - $this->requestsStartTimestamp;
-        if ($elapsedTime > 0) {
-            $requestsPerSecond = $this->numRequests / $elapsedTime;
-            if ($requestsPerSecond >= ($this->maxRequestsPerSecond - 1)) {
-                echo "Rate limiting...\n";
-                sleep(2);
+	foreach ($this->requestTimestamps as $i => $timestamp) {
+            if ($timestamp < time() - 10) {
+                unset($this->requestTimestamps[$i]);
             }
+        }
+        $this->requestTimestamps[] = time();
+
+        $requestsPerSecond = count($this->requestTimestamps) / 10;
+        if ($requestsPerSecond >= ($this->maxRequestsPerSecond - 1)) {
+            echo "Rate limiting...\n";
+            sleep(2);
         }
     }
 
