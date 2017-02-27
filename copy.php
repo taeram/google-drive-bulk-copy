@@ -30,8 +30,17 @@ if (!$isNewDatabase) {
 $drive = new \Taeram\Google\Drive($config['application_name'], __DIR__ . '/' . $config['client_secret_path'], TMP_PATH);
 $drive->getClient();
 
+// What do all the colours mean
+echo "Legend\n";
+echo "=============\n";
+echo colorize('light_green', " *") , " - New\n";
+echo colorize('light_gray', " *") . " - Exists\n";
+echo colorize('dark_gray', " *") , " - Ignored\n";
+
 // Start the copy!
 recursiveCopy($sourceFolderId, $destinationFolderId);
+
+echo "\n";
 
 /**
  * Recursively copy one Google Drive folder to another
@@ -41,7 +50,7 @@ recursiveCopy($sourceFolderId, $destinationFolderId);
  * @param string $parentPath The parent path. Optional. Used only during recursion.
  */
 function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null) {
-    global $drive, $config;
+    global $drive, $config, $log;
 
     $sourceFolder = $drive->getFileById($sourceFolderId);
     if (!$sourceFolder) {
@@ -59,7 +68,8 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
     foreach ($sourceFiles as $sourceFile) {
         // Skip files we've already copied
         if (fileIdExists($sourceFile->id)) {
-            echo "Exists: $parentPath/" . $sourceFile->getName() . "\n";
+            $log->addInfo("Exists: $parentPath/" . $sourceFile->getName());
+            echo colorize('light_gray', "*");
             continue;
         }
 
@@ -76,7 +86,8 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
             // Ignore certain files by extension
             foreach ($config['ignored_file_extension_regexes'] as $regex) {
                 if (preg_match("/$regex$/i", $sourceFile->getName())) {
-                    echo "Ignoring: $parentPath/" . $sourceFile->getName() . "\n";
+                    $log->addInfo("Ignoring: $parentPath/" . $sourceFile->getName());
+                    echo colorize('dark_gray', "*");
                     continue 2;
                 }
             }
@@ -87,7 +98,8 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
             }
 
             // Make a copy of the file, and put it in the destination folder
-            echo "Copying: $parentPath/" . $sourceFile->getName() . "\n";
+            echo colorize('light_green', "*");
+            $log->addInfo("Copying: $parentPath/" . $sourceFile->getName());
             $drive->copyFile($sourceFile, $destinationSubFolder->id);
 
             // Store the file in the list
@@ -96,6 +108,34 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
     }
 
     return $destinationSubFolder;
+}
+
+function colorize($color, $text) {
+    $colors = array(
+        'black' => "\033[0;30m",
+        'blue' => "\033[0;34m",
+        'brown' => "\033[0;33m",
+        'cyan' => "\033[0;36m",
+        'dark_gray' => "\033[1;30m",
+        'green' => "\033[0;32m",
+        'light_blue' => "\033[1;34m",
+        'light_cyan' => "\033[1;36m",
+        'light_gray' => "\033[0;37m",
+        'light_green' => "\033[1;32m",
+        'light_purple' => "\033[1;35m",
+        'light_red' => "\033[1;31m",
+        'purple' => "\033[0;35m",
+        'red' => "\033[0;31m",
+        'white' => "\033[1;37m",
+        'yellow' => "\033[1;33m",
+        'reset' => "\033[0m",
+    );
+
+    if (!isset($colors[$color])) {
+        throw new \Exception("Invalid color: $color");
+    }
+
+    echo $colors[$color] . $text . $colors['reset'];
 }
 
 /**

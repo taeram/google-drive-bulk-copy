@@ -31,4 +31,4 @@ foreach ($configFiles as $file) {
 
 // Setup logging
 $log = new \Monolog\Logger('app');
-$log->pushHandler(new \Monolog\Handler\StreamHandler(LOG_PATH . '/app.log', \Monolog\Logger::WARNING));
+$log->pushHandler(new \Monolog\Handler\StreamHandler(LOG_PATH . '/app.log', \Monolog\Logger::INFO));
