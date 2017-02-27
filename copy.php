@@ -36,6 +36,7 @@ echo "=============\n";
 echo colorize('light_green', " *") , " - New\n";
 echo colorize('light_gray', " *") . " - Exists\n";
 echo colorize('dark_gray', " *") , " - Ignored\n";
+echo colorize('yellow', " R") , " - Rate Limited\n";
 
 // Start the copy!
 recursiveCopy($sourceFolderId, $destinationFolderId);
