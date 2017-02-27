@@ -117,22 +117,22 @@ class Google {
             if ($e->getCode() == 403) {
                 $requestNum++;
                 if ($requestNum == 1) {
-                    $sleep = 1;
+                    $sleepSeconds = 1;
                 } else if ($requestNum == 2) {
-                    $sleep = 2;
+                    $sleepSeconds = 2;
                 } else if ($requestNum == 3) {
-                    $sleep = 4;
+                    $sleepSeconds = 4;
                 } else if ($requestNum == 4) {
-                    $sleep = 8;
-                } else if ($requestnum == 5) {
-                    $sleep = 16;
+                    $sleepSeconds = 8;
+                } else if ($requestNum == 5) {
+                    $sleepSeconds = 16;
                 } else {
                     throw new \Exception ($e->getMessage(), $e->getCode(), $e);
                 }
 
                 // Wait for a number of seconds before retrying
-                echo "Rate limited, waiting $sleep seconds...\n";
-                sleep($sleep + usleep(mt_rand(1, 1000)));
+                echo "\033[1;33m" . "R" . "\033[0m";
+                usleep($sleepSeconds * 1000 + mt_rand(1, 1000));
 
                 return $this->call($service, $functionName, $args, $requestNum);
             } else {
