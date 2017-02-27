@@ -117,15 +117,15 @@ class Google {
             if ($e->getCode() == 403) {
                 $requestNum++;
                 if ($requestNum == 1) {
-                    $sleepSeconds = 1;
-                } else if ($requestNum == 2) {
                     $sleepSeconds = 2;
-                } else if ($requestNum == 3) {
+                } else if ($requestNum == 2) {
                     $sleepSeconds = 4;
-                } else if ($requestNum == 4) {
+                } else if ($requestNum == 3) {
                     $sleepSeconds = 8;
-                } else if ($requestNum == 5) {
+                } else if ($requestNum == 4) {
                     $sleepSeconds = 16;
+                } else if ($requestNum == 5) {
+                    $sleepSeconds = 32;
                 } else {
                     throw new \Exception ($e->getMessage(), $e->getCode(), $e);
                 }
