@@ -92,4 +92,52 @@ class Google {
             file_put_contents($this->credentialsPath, json_encode($this->client->getAccessToken()));
         }
     }
+
+    /**
+     * Call a Google Function
+     *
+     * @param object $service The Google Service
+     * @param string $functionName The function name
+     * @param array $args The function arguments
+     * @param integer $requestNum The request number. Used only in recursion.
+     *
+     * @return
+     */
+    public function call($service, $functionName, $args, $requestNum = 0) {
+        try {
+            if (count($args) == 1) {
+                return $service->$functionName($args[0]);
+            } else if (count($args) == 2) {
+                return $service->$functionName($args[0], $args[1]);
+            } else if (count($args) == 3) {
+                return $service->$functionName($args[0], $args[1], $args[2]);
+            }
+        } catch (\Exception $e) {
+            // Was the request rate limited?
+            if ($e->getCode() == 403) {
+                $requestNum++;
+                if ($requestNum == 1) {
+                    $sleep = 1;
+                } else if ($requestNum == 2) {
+                    $sleep = 2;
+                } else if ($requestNum == 3) {
+                    $sleep = 4;
+                } else if ($requestNum == 4) {
+                    $sleep = 8;
+                } else if ($requestnum == 5) {
+                    $sleep = 16;
+                } else {
+                    throw new \Exception ($e->getMessage(), $e->getCode(), $e);
+                }
+
+                // Wait for a number of seconds before retrying
+                echo "Rate limited, waiting $sleep seconds...\n";
+                sleep($sleep + usleep(mt_rand(1, 1000)));
+
+                return $this->call($service, $functionName, $args, $requestNum);
+            } else {
+                throw new \Exception ($e->getMessage(), $e->getCode(), $e);
+            }
+        }
+    }
 }

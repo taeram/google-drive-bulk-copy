@@ -45,26 +45,6 @@ class Drive extends \Taeram\Google {
     }
 
     /**
-     * Handle rate limiting
-     */
-    protected function rateLimit() {
-        $this->numRequests++;
-
-	foreach ($this->requestTimestamps as $i => $timestamp) {
-            if ($timestamp < time() - 10) {
-                unset($this->requestTimestamps[$i]);
-            }
-        }
-        $this->requestTimestamps[] = time();
-
-        $requestsPerSecond = count($this->requestTimestamps) / 10;
-        if ($requestsPerSecond >= ($this->maxRequestsPerSecond - 1)) {
-            echo "Rate limiting...\n";
-            sleep(2);
-        }
-    }
-
-    /**
      * Get the specified file
      *
      * @param string $fileId The file id
@@ -72,8 +52,9 @@ class Drive extends \Taeram\Google {
      * @return \Google_Service_Drive_DriveFile or null if none found
      */
     public function getFileById($fileId) {
-        $this->rateLimit();
-        return $this->service->files->get($fileId);
+        return $this->call($this->service->files, 'get', array(
+            $fileId
+        ));
     }
 
     /**
@@ -91,10 +72,11 @@ class Drive extends \Taeram\Google {
             $q .= " and '$folderId' in parents";
         }
 
-        $this->rateLimit();
-        $fileList = $this->service->files->listFiles(array(
-            'orderBy' => 'name,folder,createdTime',
-            'q' => $q
+        $fileList = $this->call($this->service->files, 'listFiles', array(
+            array(
+                'orderBy' => 'name,folder,createdTime',
+                'q' => $q
+            )
         ));
 
         $files = $fileList->getFiles();
@@ -121,26 +103,33 @@ class Drive extends \Taeram\Google {
         }
 
         // Create the folder
-        $this->rateLimit();
         $fileMetadata = new \Google_Service_Drive_DriveFile(array(
             'name' => $folderName,
             'mimeType' => 'application/vnd.google-apps.folder'
         ));
-        $folder = $this->service->files->create($fileMetadata, array('fields' => 'id'));
+        $folder = $this->call($this->service->files, 'create', array(
+            $fileMetadata,
+            array('fields' => 'id')
+        ));
 
         if ($parentFolderId) {
             // Retrieve the existing parents to remove
-            $this->rateLimit();
-            $folderParents = $this->service->files->get($folder->id, array('fields' => 'parents'));
+            $folderParents = $this->call($this->service->files, 'get', array(
+                $folder->id,
+                array('fields' => 'parents')
+            ));
             $previousParents = join(',', $folderParents->parents);
 
             // Move the file to the new folder
-            $this->rateLimit();
             $emptyFileMetadata = new \Google_Service_Drive_DriveFile();
-            $this->service->files->update($folder->id, $emptyFileMetadata, array(
-                'addParents' => $parentFolderId,
-                'removeParents' => $previousParents,
-                'fields' => 'id, parents'
+            $this->call($this->service->files, 'update', array(
+                $folder->id,
+                $emptyFileMetadata,
+                array(
+                    'addParents' => $parentFolderId,
+                    'removeParents' => $previousParents,
+                    'fields' => 'id, parents'
+                )
             ));
         }
 
@@ -157,17 +146,22 @@ class Drive extends \Taeram\Google {
      */
     public function moveFolder($childFolderId, $parentFolderId) {
         // Retrieve the existing parents to remove
-        $this->rateLimit();
-        $childFolderParents = $this->service->files->get($childFolderId, array('fields' => 'parents'));
+        $childFolderParents = $this->call($this->service->files, 'get', array(
+            $childFolderId,
+            array('fields' => 'parents')
+        ));
         $previousParents = join(',', $childFolderParents->parents);
 
         // Move the file to the new folder
-        $this->rateLimit();
         $emptyFileMetadata = new \Google_Service_Drive_DriveFile();
-        $this->service->files->update($childFolderId, $emptyFileMetadata, array(
-            'addParents' => $parentFolderId,
-            'removeParents' => $previousParents,
-            'fields' => 'id, parents'
+        $this->call($this->service->files, 'update', array(
+            $childFolderId,
+            $emptyFileMetadata,
+            array(
+                'addParents' => $parentFolderId,
+                'removeParents' => $previousParents,
+                'fields' => 'id, parents'
+            )
         ));
 
         return $this->getFileById($childFolderId);
@@ -189,8 +183,10 @@ class Drive extends \Taeram\Google {
         $fileToCopy->setParents(array($destinationFolderId));
 
         // Make a copy of the file
-        $this->rateLimit();
-        $fileCopy = $this->service->files->copy($file->id, $fileToCopy);
+        $fileCopy = $this->call($this->service->files, 'copy', array(
+            $file->id,
+            $fileToCopy
+        ));
 
         return $this->getFileById($fileCopy->id);
     }
@@ -207,11 +203,12 @@ class Drive extends \Taeram\Google {
 
         $pageToken = null;
         do {
-            $this->rateLimit();
-            $fileList = $this->service->files->listFiles(array(
-                'orderBy' => 'name,folder,createdTime',
-                'pageToken' => $pageToken,
-                'q' => "'$folderId' in parents"
+            $fileList = $this->call($this->service->files, 'listFiles', array(
+                array(
+                    'orderBy' => 'name,folder,createdTime',
+                    'pageToken' => $pageToken,
+                    'q' => "'$folderId' in parents"
+                )
             ));
 
             $list = $fileList->getFiles();
