@@ -10,29 +10,6 @@ class Drive extends \Taeram\Google {
     protected $service;
 
     /**
-     * The max number of allowed requests per second
-     *
-     * From Google, the Drive API has a limit of 10,000	queries per 100 seconds
-     *
-     * @var integer
-     */
-    protected $maxRequestsPerSecond = 10000 / 100;
-
-    /**
-     * When did we start making requests?
-     *
-     * @var integer
-     */
-    protected $requestTimestamps = array();
-
-    /**
-     * How many requests have we made so far?
-     *
-     * @var integer
-     */
-    protected $numRequests = 0;
-
-    /**
      * Get the client
      *
      * @return \Google_Client
