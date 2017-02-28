@@ -115,24 +115,13 @@ class Google {
         } catch (\Exception $e) {
             // Was the request rate limited?
             if ($e->getCode() == 403) {
+                // Exponentially increase the wait time
                 $requestNum++;
-                if ($requestNum == 1) {
-                    $sleepSeconds = 2;
-                } else if ($requestNum == 2) {
-                    $sleepSeconds = 4;
-                } else if ($requestNum == 3) {
-                    $sleepSeconds = 8;
-                } else if ($requestNum == 4) {
-                    $sleepSeconds = 16;
-                } else if ($requestNum == 5) {
-                    $sleepSeconds = 32;
-                } else {
-                    throw new \Exception ($e->getMessage(), $e->getCode(), $e);
-                }
+                $sleepMillieconds = pow($requestNum, 2) * 1000 + mt_rand(1, 1000);
 
                 // Wait for a number of seconds before retrying
                 echo "\033[1;33m" . "R" . "\033[0m";
-                usleep($sleepSeconds * 1000 + mt_rand(1, 1000));
+                usleep($sleepMillieconds);
 
                 return $this->call($service, $functionName, $args, $requestNum);
             } else {
