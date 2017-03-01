@@ -124,6 +124,16 @@ class Google {
                 usleep($sleepMillieconds);
 
                 return $this->call($service, $functionName, $args, $requestNum);
+            } else if ($e->getCode() == 500) {
+                // Exponentially increase the wait time
+                $requestNum++;
+                $sleepMillieconds = pow($requestNum, 2) * 1000 + mt_rand(1, 1000);
+
+                // Wait for a number of seconds before retrying
+                echo "\033[1;31m" . "E" . "\033[0m";
+                usleep($sleepMillieconds);
+
+                return $this->call($service, $functionName, $args, $requestNum);
             } else {
                 throw new \Exception ($e->getMessage(), $e->getCode(), $e);
             }
