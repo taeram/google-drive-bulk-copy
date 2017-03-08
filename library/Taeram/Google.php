@@ -113,28 +113,28 @@ class Google {
                 return $service->$functionName($args[0], $args[1], $args[2]);
             }
         } catch (\Exception $e) {
-            // Was the request rate limited?
             if ($e->getCode() == 403) {
                 // Exponentially increase the wait time
                 $requestNum++;
-                $sleepMillieconds = pow($requestNum, 2) * 1000 + mt_rand(1, 1000);
+                $sleepSeconds = (pow($requestNum, 2) + mt_rand(0, 1));
 
                 // Wait for a number of seconds before retrying
                 echo "\033[1;33m" . "R" . "\033[0m";
-                usleep($sleepMillieconds);
+                usleep($sleepSeconds * 1000000);
 
                 return $this->call($service, $functionName, $args, $requestNum);
             } else if ($e->getCode() == 500) {
                 // Exponentially increase the wait time
                 $requestNum++;
-                $sleepMillieconds = pow($requestNum, 2) * 1000 + mt_rand(1, 1000);
+                $sleepSeconds = (pow($requestNum, 2) + mt_rand(0, 1));
 
                 // Wait for a number of seconds before retrying
                 echo "\033[1;31m" . "E" . "\033[0m";
-                usleep($sleepMillieconds);
+                usleep($sleepSeconds * 1000000);
 
                 return $this->call($service, $functionName, $args, $requestNum);
             } else {
+                var_dump($functionName, $args);
                 throw new \Exception ($e->getMessage(), $e->getCode(), $e);
             }
         }
