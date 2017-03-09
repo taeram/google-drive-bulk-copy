@@ -202,4 +202,28 @@ class Drive extends \Taeram\Google {
 
         return $files;
     }
+
+    /**
+     * Download a file and write it to a path
+     *
+     * @param string $fileId The file id
+     * @param string $filePath Where to write the file to
+     *
+     * @return mixed The file contents
+     */
+    public function downloadFile($fileId, $filePath) {
+        $response = $this->call($this->service->files, 'get', array(
+            $fileId,
+            array('alt' => 'media')
+        ));
+
+        $fileDir = dirname($filePath);
+        if (!file_exists($fileDir)) {
+            mkdir($fileDir, $mode = 0755, $recursive = true);
+        }
+
+        file_put_contents($filePath, $response->getBody()->getContents());
+
+        return true;
+    }
 }
