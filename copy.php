@@ -60,11 +60,13 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
     $parentPath .= '/' . $sourceFolder->getName();
 
     // Iterate through all files in this folder
-    $destinationSubFolder = null;
     $sourceFiles = $drive->findFilesInFolderById($sourceFolder->id);
     if (!$sourceFiles) {
         return null;
     }
+
+    // Create a destination folder
+    $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
 
     foreach ($sourceFiles as $sourceFile) {
         // Skip files we've already copied
@@ -76,13 +78,9 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
 
         $isFolder = ($sourceFile->getMimeType() == 'application/vnd.google-apps.folder');
         if ($isFolder) {
-            // Iterate through all folders in this folder
-            $destinationChildFolder = recursiveCopy($sourceFile->id, $destinationFolderId, $parentPath);
-            if ($destinationChildFolder) {
-                // Create the parent, and move the child into the parent
-                $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
-                $drive->moveFolder($destinationChildFolder->id, $destinationSubFolder->id);
-            }
+            echo "O - Creating $parentPath/" . $sourceFile->getName() . "\n";
+            $destinationChildFolder = $drive->createFolder($sourceFile->getName(), $destinationSubFolder->id);
+            recursiveCopy($sourceFile->id, $destinationChildFolder->id, $parentPath);
         } else {
             // Ignore certain files by extension
             foreach ($config['ignored_file_extension_regexes'] as $regex) {
@@ -93,10 +91,7 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
                 }
             }
 
-            // Create a destination folder
-            if (!$destinationSubFolder) {
-                $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
-            }
+            echo "F - Copying $parentPath/" . $sourceFile->getName() . "\n";
 
             // Make a copy of the file, and put it in the destination folder
             echo colorize('light_green', "*");
@@ -107,8 +102,6 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
             storeFileId($sourceFile->id);
         }
     }
-
-    return $destinationSubFolder;
 }
 
 function colorize($color, $text) {
