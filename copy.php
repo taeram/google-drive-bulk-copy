@@ -58,15 +58,13 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
         throw new \Exception("Cannot find source folder: $sourceFolderId");
     }
     $parentPath .= '/' . $sourceFolder->getName();
+    $log->addInfo("Scanning $parentPath");
 
     // Iterate through all files in this folder
     $sourceFiles = $drive->findFilesInFolderById($sourceFolder->id);
     if (!$sourceFiles) {
         return null;
     }
-
-    // Create a destination folder
-    $destinationSubFolder = $drive->createFolder($sourceFolder->getName(), $destinationFolderId);
 
     foreach ($sourceFiles as $sourceFile) {
         // Skip files we've already copied
@@ -78,22 +76,30 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
 
         $isFolder = ($sourceFile->getMimeType() == 'application/vnd.google-apps.folder');
         if ($isFolder) {
-            $destinationChildFolder = $drive->createFolder($sourceFile->getName(), $destinationSubFolder->id);
-            recursiveCopy($sourceFile->id, $destinationChildFolder->id, $parentPath);
+            // Create a destination folder if it doesn't exist
+            $destinationSubFolder = $drive->getFileByName($sourceFile->getName(), $destinationFolderId);
+            if (!$destinationSubFolder) {
+                $log->addInfo("Creating $parentPath/" . $sourceFile->getName());
+                $destinationSubFolder = $drive->createFolder($sourceFile->getName(), $destinationFolderId);
+            }
+
+            recursiveCopy($sourceFile->id, $destinationSubFolder->id, $parentPath);
         } else {
             // Ignore certain files by extension
-            foreach ($config['ignored_file_extension_regexes'] as $regex) {
-                if (preg_match("/$regex$/i", $sourceFile->getName())) {
-                    $log->addInfo("Ignoring: $parentPath/" . $sourceFile->getName());
-                    echo colorize('dark_gray', "*");
-                    continue 2;
+            if ($config['ignored_file_extension_regexes']) {
+                foreach ($config['ignored_file_extension_regexes'] as $regex) {
+                    if (preg_match("/$regex$/i", $sourceFile->getName())) {
+                        $log->addInfo("Ignoring: $parentPath/" . $sourceFile->getName());
+                        echo colorize('dark_gray', "*");
+                        continue 2;
+                    }
                 }
             }
 
             // Make a copy of the file, and put it in the destination folder
             echo colorize('light_green', "*");
             $log->addInfo("Copying: $parentPath/" . $sourceFile->getName());
-            $drive->copyFile($sourceFile, $destinationSubFolder->id);
+            $drive->copyFile($sourceFile, $destinationFolderId);
 
             // Store the file in the list
             storeFileId($sourceFile->id);
