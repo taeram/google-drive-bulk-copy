@@ -65,6 +65,34 @@ class Drive extends \Taeram\Google {
     }
 
     /**
+     * Get the specified file. Assumes only one file exists with the specified name.
+     *
+     * @param string $fileId The file id
+     * @param string $folderId The folder id. Optional. If not set, looks in the root folder
+     *
+     * @return boolean
+     */
+    public function fileExists($fileName, $folderId = null) {
+        $fileName = addslashes($fileName);
+        $q = "name = '$fileName'";
+        if ($folderId) {
+            $q .= " and '$folderId' in parents";
+        }
+
+        $fileList = $this->call($this->service->files, 'listFiles', array(
+            array(
+                'q' => $q
+            )
+        ));
+
+        if ($fileList->getFiles()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Create a folder
      *
      * @param string $folderName The folder name
