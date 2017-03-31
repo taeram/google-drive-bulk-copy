@@ -22,7 +22,7 @@ if (strlen($destinationFolderId) != 28) {
 $dbPath = __DIR__ . '/' . $config['db_path'];
 $isNewDatabase = (file_exists($dbPath) == false);
 $db = new \PDO("sqlite://$dbPath");
-if (!$isNewDatabase) {
+if ($isNewDatabase) {
     $db->exec('CREATE TABLE files (id char(28))');
 }
 
