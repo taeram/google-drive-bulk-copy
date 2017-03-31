@@ -78,7 +78,6 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
 
         $isFolder = ($sourceFile->getMimeType() == 'application/vnd.google-apps.folder');
         if ($isFolder) {
-            echo "O - Creating $parentPath/" . $sourceFile->getName() . "\n";
             $destinationChildFolder = $drive->createFolder($sourceFile->getName(), $destinationSubFolder->id);
             recursiveCopy($sourceFile->id, $destinationChildFolder->id, $parentPath);
         } else {
@@ -90,8 +89,6 @@ function recursiveCopy($sourceFolderId, $destinationFolderId, $parentPath = null
                     continue 2;
                 }
             }
-
-            echo "F - Copying $parentPath/" . $sourceFile->getName() . "\n";
 
             // Make a copy of the file, and put it in the destination folder
             echo colorize('light_green', "*");
