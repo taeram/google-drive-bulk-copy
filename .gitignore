@@ -2,6 +2,6 @@
 /config/config.custom.yml
 /*.db
 /*.db-journal
-/logs/
+/logs
 /tmp/
 /vendor/
