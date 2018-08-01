@@ -16,3 +16,4 @@ ignored_file_extension_regexes:
     - sample\.avi
     - sample\.mkv
 db_path: copy.db
+impersonate_user: user@example.com
