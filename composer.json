@@ -5,8 +5,8 @@
         }
     },
     "require": {
-        "monolog/monolog": "^1.22",
-        "google/apiclient": "^2.1",
-        "symfony/yaml": "^3.2"
+        "monolog/monolog": "*",
+        "google/apiclient": "*",
+        "symfony/yaml": "*"
     }
 }
