@@ -59,7 +59,6 @@ class Google {
    * @return
    */
   public function call($service, $functionName, $args, $requestNum = 0) {
-    echo "c";
     try {
       if (count($args) == 1) {
         return $service->$functionName($args[0]);
