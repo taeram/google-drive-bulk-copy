@@ -34,7 +34,8 @@ $log->pushHandler(new StreamHandler('php://stdout', Logger::INFO));
 
 // Instantiate the Google Drive client
 $jsonFilePath = __DIR__ . '/' . $config['client_secret_path'];
-$drive = new \Taeram\Google\Drive($jsonFilePath, $config['impersonate_user']);
+$tmpDir = __DIR__ . '/tmp';
+$drive = new \Taeram\Google\Drive($jsonFilePath, $tmpDir, $config['impersonate_user']);
 $drive->setLogger($log);
 $drive->getClient();
 
