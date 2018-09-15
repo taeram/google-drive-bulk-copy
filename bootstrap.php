@@ -16,11 +16,11 @@ if (!file_exists(VENDOR_PATH)) {
 require_once VENDOR_PATH . '/autoload.php';
 
 // Load the config
-$config = array();
-$configFiles = array(
+$config = [];
+$configFiles = [
     CONFIG_PATH . '/config.yml',
-    CONFIG_PATH . '/config.custom.yml'
-);
+    CONFIG_PATH . '/config.custom.yml',
+];
 $yaml = new \Symfony\Component\Yaml\Parser();
 foreach ($configFiles as $file) {
     if (file_exists($file)) {
