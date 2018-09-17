@@ -47,12 +47,10 @@ echo colorize('dark_gray', " *"), " - Ignored\n";
 echo colorize('yellow', " R"), " - Rate Limited\n";
 
 // Get the list of all new files
-//$files = null;
-//recursiveListFiles($sourceFolderId);
-//file_put_contents(__DIR__ . '/files.json', json_encode($files));
+$files = null;
+recursiveListFiles($sourceFolderId);
 
 // Copy the new files over to the destination folder
-$files = json_decode(file_get_contents(__DIR__ . '/files.json'), TRUE);
 foreach ($files as $fileId => $destPath) {
     $sourceFile = $drive->getFileById($fileId);
     $destPath = preg_replace('/^(.+?\/)/', '/', $destPath);

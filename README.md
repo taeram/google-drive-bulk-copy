@@ -16,9 +16,9 @@ Google Developer Console
 
 1. Browse to the [Google Developers Console](https://console.developers.google.com)
 1. Create a new project called "Google Drive Bulk Copy".
-1. On the Dashboard, click "Enable API" at the top
+1. On the Dashboard, click "Library" in the sidebar
 1. In the search box, type "Drive" and click "Google Drive API"
-1. At the top of the Google Drive API screen, click "Enable"
+1. Click "Enable"
 1. In the sidebar, click "Credentials".
 1. Click "Create Credentials", and select "OAuth Client ID".
 1. Under "Create Client ID", select "Other".
